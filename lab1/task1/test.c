@@ -84,24 +84,24 @@ enum errors registration() {
     char pin_str[7];
     int PIN;
 
-    printf("Введите логин (до 6 латинских символов или цифр): ");
+    //printf("Введите логин (до 6 латинских символов или цифр): ");
     scanf("%6s", username);
     enum errors check_user = clear_input_buffer();
     if (check_user != OK) {
-        printf("Ошибка. Логин должен содержать 6 символов\n");
+        //printf("Ошибка. Логин должен содержать 6 символов\n");
         return INVALID_INPUT;
     }
 
     for (int i = 0; username[i]; i++) {
         if (!isalnum(username[i])) {
-            printf("Ошибка: логин содержит недопустимые символы!\n");
+            //printf("Ошибка: логин содержит недопустимые символы!\n");
             return INVALID_INPUT;
         }
     }
 
     int stored_pin;
     if (check_if_exists(username, &stored_pin) == ALREADY_EXISTS) {
-        printf("Ошибка: такой логин уже зарегистрирован!\n");
+        //printf("Ошибка: такой логин уже зарегистрирован!\n");
         return ALREADY_EXISTS;
     }
 
@@ -109,24 +109,24 @@ enum errors registration() {
     scanf("%6s", pin_str);
     enum errors check_password = clear_input_buffer();
     if (check_password != OK) {
-        printf("Ошибка: PIN-код должен быть числом в диапазоне [0, 100000]!\n");
+        //printf("Ошибка: PIN-код должен быть числом в диапазоне [0, 100000]!\n");
         return INVALID_INPUT;
     }
 
     if (str_to_int(pin_str, &PIN) != OK) {
-        printf("Ошибка: PIN-код должен быть числом в диапазоне [0, 100000]!\n");
+        //printf("Ошибка: PIN-код должен быть числом в диапазоне [0, 100000]!\n");
         return INVALID_INPUT;
     }
 
     FILE* file = fopen("all_users.txt", "a");
     if (!file) {
-        printf("Ошибка открытия файла!\n");
+        //printf("Ошибка открытия файла!\n");
         return INVALID_MEMORY;
     }
 
     fprintf(file, "%s %d -1\n", username, PIN);
     fclose(file);
-    printf("Регистрация успешна!\n");
+    //printf("Регистрация успешна!\n");
 
     return OK;
 }
@@ -136,16 +136,16 @@ enum errors login(char* logged_user) {
     char pin_str[7];
     int input_pin, stored_pin;
 
-    printf("Введите логин: ");
+    //printf("Введите логин: ");
     scanf("%6s", username);
     enum errors check_user = clear_input_buffer();
     if (check_user != OK) {
-        printf("Ошибка. Логин должен содержать 6 символов\n");
+        //printf("Ошибка. Логин должен содержать 6 символов\n");
         return INVALID_INPUT;
     }
 
     if (check_if_exists(username, &stored_pin) != ALREADY_EXISTS) {
-        printf("Ошибка: пользователь не найден!\n");
+        //printf("Ошибка: пользователь не найден!\n");
         return NOT_DECLARED;
     }
 
@@ -153,17 +153,17 @@ enum errors login(char* logged_user) {
     scanf("%6s", pin_str);
     enum errors check_password = clear_input_buffer();
     if (check_password != OK) {
-        printf("Ошибка: PIN-код должен быть числом в диапазоне [0, 100000]!\n");
+        //printf("Ошибка: PIN-код должен быть числом в диапазоне [0, 100000]!\n");
         return INVALID_INPUT;
     }
 
     if (str_to_int(pin_str, &input_pin) != OK || input_pin != stored_pin) {
-        printf("Ошибка: неверный PIN-код!\n");
+        //printf("Ошибка: неверный PIN-код!\n");
         return WRONG_PIN;
     }
 
     strcpy(logged_user, username);
-    printf("Вход выполнен успешно!\n");
+    //printf("Вход выполнен успешно!\n");
     return OK;
 }
 
@@ -356,13 +356,23 @@ int main() {
         clear_input_buffer();
 
         if (choice == 1) {
-            if (login(logged_user) == OK) break;
-        } else if (choice == 2) {
-            registration();
-        } else if (choice == 3) {
+            printf("Введите логин: ");
+            enum errors status_login = login(logged_user);
+            if (status_login == OK) break;
+            else printf("Ошибка входа\n");
+        }
+        else if (choice == 2) {
+            printf("Введите логин (до 6 латинских символов или цифр): ");
+            enum errors status_registration = registration();
+            if (status_registration != OK) {
+                printf("Ошибка регистрации\n");
+            }
+        }
+        else if (choice == 3) {
             printf("Выход из программы.\n");
             return 0;
-        } else {
+        }
+        else {
             printf("Неверный ввод!\n");
         }
     }
@@ -374,8 +384,6 @@ int main() {
 
     char command[100];
     while (1) {
-
-
         if (sessions == 0) {
             printf("Количество команд для данной сессии закончилось\n");
             break;
