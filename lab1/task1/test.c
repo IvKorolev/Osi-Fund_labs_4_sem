@@ -14,15 +14,35 @@ enum errors {
     WRONG_PIN,
 };
 
-enum errors clear_input_buffer() {
+void print_error(enum errors err) {
+    switch (err) {
+        case INVALID_INPUT:
+            printf("Ошибка: Некорректный ввод.\n");
+            break;
+        case INVALID_MEMORY:
+            printf("Ошибка: Недостаточно памяти или проблемы с файлом.\n");
+            break;
+        case NOT_DECLARED:
+            printf("Ошибка: Пользователь не найден.\n");
+            break;
+        case ALREADY_EXISTS:
+            printf("Ошибка: Такой логин уже зарегистрирован.\n");
+            break;
+        case WRONG_PIN:
+            printf("Ошибка: Неверный PIN-код.\n");
+            break;
+        default:
+            break;
+    }
+}
 
+enum errors clear_input_buffer() {
     int extra_char = getchar();
     if (extra_char != '\n' && extra_char != EOF) {
         int c;
         while ((c = getchar()) != '\n' && c != EOF);
         return INVALID_INPUT;
     }
-
     return OK;
 }
 
@@ -60,7 +80,6 @@ enum errors check_if_exists(const char* username, int* stored_pin) {
 }
 
 enum errors find_number_of_sessions(const char* username, int* result) {
-
     FILE* file = fopen("all_users.txt", "r");
     if (!file) return INVALID_MEMORY;
 
@@ -76,6 +95,7 @@ enum errors find_number_of_sessions(const char* username, int* result) {
         }
     }
 
+    fclose(file);
     return INVALID_INPUT;
 }
 
@@ -84,24 +104,21 @@ enum errors registration() {
     char pin_str[7];
     int PIN;
 
-    //printf("Введите логин (до 6 латинских символов или цифр): ");
+    printf("Введите логин (до 6 латинских символов или цифр): ");
     scanf("%6s", username);
     enum errors check_user = clear_input_buffer();
     if (check_user != OK) {
-        //printf("Ошибка. Логин должен содержать 6 символов\n");
         return INVALID_INPUT;
     }
 
     for (int i = 0; username[i]; i++) {
         if (!isalnum(username[i])) {
-            //printf("Ошибка: логин содержит недопустимые символы!\n");
             return INVALID_INPUT;
         }
     }
 
     int stored_pin;
     if (check_if_exists(username, &stored_pin) == ALREADY_EXISTS) {
-        //printf("Ошибка: такой логин уже зарегистрирован!\n");
         return ALREADY_EXISTS;
     }
 
@@ -109,24 +126,21 @@ enum errors registration() {
     scanf("%6s", pin_str);
     enum errors check_password = clear_input_buffer();
     if (check_password != OK) {
-        //printf("Ошибка: PIN-код должен быть числом в диапазоне [0, 100000]!\n");
         return INVALID_INPUT;
     }
 
     if (str_to_int(pin_str, &PIN) != OK) {
-        //printf("Ошибка: PIN-код должен быть числом в диапазоне [0, 100000]!\n");
         return INVALID_INPUT;
     }
 
     FILE* file = fopen("all_users.txt", "a");
     if (!file) {
-        //printf("Ошибка открытия файла!\n");
         return INVALID_MEMORY;
     }
 
     fprintf(file, "%s %d -1\n", username, PIN);
     fclose(file);
-    //printf("Регистрация успешна!\n");
+    printf("Регистрация успешна!\n");
 
     return OK;
 }
@@ -136,16 +150,14 @@ enum errors login(char* logged_user) {
     char pin_str[7];
     int input_pin, stored_pin;
 
-    //printf("Введите логин: ");
+    printf("Введите логин: ");
     scanf("%6s", username);
     enum errors check_user = clear_input_buffer();
     if (check_user != OK) {
-        //printf("Ошибка. Логин должен содержать 6 символов\n");
         return INVALID_INPUT;
     }
 
     if (check_if_exists(username, &stored_pin) != ALREADY_EXISTS) {
-        //printf("Ошибка: пользователь не найден!\n");
         return NOT_DECLARED;
     }
 
@@ -153,17 +165,15 @@ enum errors login(char* logged_user) {
     scanf("%6s", pin_str);
     enum errors check_password = clear_input_buffer();
     if (check_password != OK) {
-        //printf("Ошибка: PIN-код должен быть числом в диапазоне [0, 100000]!\n");
         return INVALID_INPUT;
     }
 
     if (str_to_int(pin_str, &input_pin) != OK || input_pin != stored_pin) {
-        //printf("Ошибка: неверный PIN-код!\n");
         return WRONG_PIN;
     }
 
     strcpy(logged_user, username);
-    //printf("Вход выполнен успешно!\n");
+    printf("Вход выполнен успешно!\n");
     return OK;
 }
 
@@ -231,11 +241,14 @@ void process_howmuch_command(const char *command) {
 
     if (strcmp(flag, "-s") == 0) {
         printf("Прошло %.0f секунд\n", diff);
-    } else if (strcmp(flag, "-m") == 0) {
+    }
+    else if (strcmp(flag, "-m") == 0) {
         printf("Прошло %.0f минут\n", diff / 60);
-    } else if (strcmp(flag, "-h") == 0) {
+    }
+    else if (strcmp(flag, "-h") == 0) {
         printf("Прошло %.0f часов\n", diff / 3600);
-    } else if (strcmp(flag, "-y") == 0) {
+    }
+    else if (strcmp(flag, "-y") == 0) {
         printf("Прошло %.2f лет\n", diff / (3600 * 24 * 365.25));
     }
 
@@ -256,30 +269,30 @@ enum errors process_sanctions(const char* command) {
     char *number = strtok(NULL, " ");
 
     if (!username || !number) {
-        printf("Ошибка: неправильный формат команды.\n");
         free(cmd_copy);
         return INVALID_INPUT;
     }
 
     if (check_if_exists(username, &stored_pin) != ALREADY_EXISTS) {
-        printf("Ошибка: пользователь не найден!\n");
+        free(cmd_copy);
         return INVALID_INPUT;
     }
 
     if (str_to_int(number, &limit) != OK || limit <= 0) {
-        printf("Недопустимое число сессий!\n");
+        free(cmd_copy);
         return INVALID_INPUT;
     }
 
-    FILE* file = fopen("all_users1.txt", "r");
+    FILE* file = fopen("all_users.txt", "r");
     if (!file) {
-        //printf("Ошибка открытия файла!\n");
+        free(cmd_copy);
         return INVALID_MEMORY;
     }
 
     FILE* temp = fopen("temp.txt", "w");
     if (!temp) {
-        printf("Ошибка открытия временного файла!\n");
+        fclose(file);
+        free(cmd_copy);
         return INVALID_MEMORY;
     }
 
@@ -302,11 +315,11 @@ enum errors process_sanctions(const char* command) {
     remove("all_users.txt");
     rename("temp.txt", "all_users.txt");
 
+    free(cmd_copy);
     return OK;
 }
 
-enum errors process_command(const char* command, const char* user) {
-
+void process_command(const char* command, const char* user) {
     if (strcmp(command, "Time") == 0) {
         time_t now = time(NULL);
         struct tm *timeinfo = localtime(&now);
@@ -329,10 +342,15 @@ enum errors process_command(const char* command, const char* user) {
         long int number;
         scanf("%ld", &number);
         if (number == 12345) {
-            process_sanctions(command);
+            enum errors result = process_sanctions(command);
+            if (result == OK) {
+                printf("Ограничение установлено.\n");
+            }
+            else {
+                printf("Ошибка при установке ограничения.\n");
+            }
         }
         else printf("Не подтверждено\n");
-        return INVALID_INPUT;
     }
     else if (strcmp(command, "Logout") == 0) {
         printf("Выход...\n");
@@ -340,7 +358,6 @@ enum errors process_command(const char* command, const char* user) {
     else {
         printf("Неизвестная команда!\n");
     }
-    return OK;
 }
 
 int main() {
@@ -356,16 +373,21 @@ int main() {
         clear_input_buffer();
 
         if (choice == 1) {
-            printf("Введите логин: ");
-            enum errors status_login = login(logged_user);
-            if (status_login == OK) break;
-            else printf("Ошибка входа\n");
+            enum errors result = login(logged_user);
+            if (result == OK) {
+                break;
+            }
+            else {
+                print_error(result);
+            }
         }
         else if (choice == 2) {
-            printf("Введите логин (до 6 латинских символов или цифр): ");
-            enum errors status_registration = registration();
-            if (status_registration != OK) {
-                printf("Ошибка регистрации\n");
+            enum errors result = registration();
+            if (result == OK) {
+                printf("Регистрация успешна!\n");
+            }
+            else {
+                print_error(result);
             }
         }
         else if (choice == 3) {
@@ -380,7 +402,10 @@ int main() {
     print_menu();
 
     int sessions;
-    find_number_of_sessions(logged_user, &sessions);
+    enum errors result = find_number_of_sessions(logged_user, &sessions);
+    if (result != OK) {
+        print_error(result);
+    }
 
     char command[100];
     while (1) {
@@ -399,16 +424,7 @@ int main() {
 
         if (sessions != -1) sessions -= 1;
 
-        enum errors status_command;
-        status_command = process_command(command, logged_user);
-        if (status_command == INVALID_INPUT) {
-            printf("Ошибка обработки команды\n");
-            //break;
-        }
-        else if (status_command == INVALID_MEMORY) {
-            printf("Ошибка выделения памяти\n");
-            break;
-        }
+        process_command(command, logged_user);
     }
 
     return 0;
