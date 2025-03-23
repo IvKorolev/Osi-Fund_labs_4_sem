@@ -140,7 +140,6 @@ enum errors registration() {
 
     fprintf(file, "%s %d -1\n", username, PIN);
     fclose(file);
-    printf("Регистрация успешна!\n");
 
     return OK;
 }
@@ -341,6 +340,7 @@ void process_command(const char* command, const char* user) {
         printf("Для подтверждения своих действий введите 12345\n");
         long int number;
         scanf("%ld", &number);
+        clear_input_buffer();
         if (number == 12345) {
             enum errors result = process_sanctions(command);
             if (result == OK) {
