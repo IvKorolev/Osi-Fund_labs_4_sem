@@ -361,8 +361,6 @@ void process_command(const char* command, const char* user) {
 }
 
 int main() {
-    system("chcp 65001");
-    system("cls");
 
     char logged_user[7] = "";
 
