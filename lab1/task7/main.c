@@ -30,9 +30,6 @@ void list_files(const char *path) {
             continue;
         }
 
-        // if (S_ISREG(file_stat.st_mode)) {
-        //     printf("%-20s %lu\n", entry->d_name, file_stat.st_blocks);
-        // }
         printf("%-20s %lu\n", entry->d_name, entry->d_ino);
     }
 
