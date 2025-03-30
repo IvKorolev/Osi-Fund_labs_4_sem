@@ -10,4 +10,5 @@ add_executable(OsiLabs lab1/task1/main.c
         Avito/binaryTree.h
         Avito/binaryTree.c
         lab1/task1/test.c
-        lab1/task7/test.c)
+        lab1/task7/test.c
+)
