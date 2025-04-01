@@ -5,7 +5,6 @@ set(CMAKE_C_STANDARD 11)
 
 add_executable(OsiLabs lab1/task1/main.c
         lab1/task7/main.c
-        lab1/task6/main.c
         lab1/task2/main.c
         Avito/binaryTree.h
         Avito/binaryTree.c
